@@ -63,11 +63,14 @@ def get_project_by_title(title):
             FROM projects
             WHERE title = :title"""
 
+
     db_cursor = db.session.execute(QUERY, {'title': title})
     row = db_cursor.fetchone()
 
-    print "Project: {title} \nDescription: {description}".format(title=row[0], description=row[1])
-
+    if row is not None:
+        print "Project: {title} \nDescription: {description}".format(title=row[0], description=row[1])
+    else:
+        print 'not found'
 
 def get_grade_by_github_title(github, title):
     """Print grade student received for a project."""
@@ -98,7 +101,6 @@ def assign_grade(github1, title, grade):
     db.session.commit()
 
 
-
 def handle_input():
     """Main loop.
 
@@ -118,12 +120,49 @@ def handle_input():
             get_student_by_github(github)
 
         elif command == "new_student":
+            if len(args) != 3:
+                print 'wrong number of arguments'
+                continue
             first_name, last_name, github = args  # unpack!
             make_new_student(first_name, last_name, github)
 
         else:
             if command != "quit":
                 print "Invalid Entry. Try again."
+
+
+def add_a_project(student_id, title, description):
+    """
+    Add a project including project title, description & max grade"""
+
+    QUERY = """
+        INSERT INTO projects (id, title, description, max_grade)
+            VALUES (:student_id, :title, :description, :max_grade)"""
+
+    description = ""
+    db.session.execute(QUERY, {'student_id': student_id,
+                               'title': title,
+                               'description': description})
+
+    db.session.commit()
+
+
+def see_all_grades(student_github):
+    """Lets you see students grades & project titles """
+
+    QUERY = """
+        SELECT student_github, project_title, grade
+        FROM grades
+        WHERE student_github = :student_github"""
+
+    db_cursor = db.session.execute(QUERY, {'student_github': student_github})
+    row = db_cursor.fetchone()
+
+    print row
+
+
+
+
 
 
 if __name__ == "__main__":
